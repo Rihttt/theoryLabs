@@ -35,10 +35,11 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
+        "resizable": false,
         "title": "theorylabs",
-        "width": 800,
-        "height": 600
+        "width": 1200,
+        "height": 600,
+        "alwaysOnTop": true
       }
     ]
   }

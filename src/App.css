@@ -1,7 +1,45 @@
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+.sidebar{
+  position: absolute;
+  overflow: auto;
+  padding: 0px;
+  width: 150px; 
+  background: #e4f8d2; 
+  border-right: 1px solid #231F20;
+    top: 0px; 
+    bottom: 0;
+    left: 0;
 }
 
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafb);
+.content{
+  position: absolute;
+  overflow: auto;
+  background: #e7dda3; 
+  top: 0px; 
+  left: 150px;  
+  bottom: 0;
+  right: 0;
+  padding-left: 10px;
 }
+
+
+
+ul{
+  list-style-type: none;
+  padding-left: 0px;
+  text-align: left;
+  text-decoration-color: black;
+}
+
+li{
+  height: 30px;
+  background: #c5c5c5;
+  width: 130px;
+  margin-top: 5px;
+  border-radius: 5px;
+  margin-left: 5px;
+  padding-left: 10px;
+  padding-top: 8px;
+}
+ li:hover{
+  background: #acacac;
+ }

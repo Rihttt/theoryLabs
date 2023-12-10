@@ -1,53 +1,51 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
+import {BrowserRouter, Routes, Route, Link} from 'react-router-dom';
+import Lab1 from './views/lab1';
+import Lab2 from './views/lab2';
+import Lab3 from './views/lab3';
+import Lab4 from './views/lab4';
+import Lab5 from './views/lab5';
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
+export default function App() {
+  
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
+    <BrowserRouter>
+      <Routes>
+        <Route index element={<Lab1/>} />
+        <Route path="/lab1" element={<Lab1/>}/>
+        <Route path="/lab2" element={<Lab2/>}/>
+        <Route path="/lab3" element={<Lab3/>}/>
+        <Route path="/lab4" element={<Lab4/>}/>
+        <Route path="/lab5" element={<Lab5/>}/>
+      </Routes>
+      <div className="sidebar">
+        <nav>
+          <ul>
+            <li>                            
+              <Link to='/lab1' className="MyLinks">Лабораторная 1</Link>                   
+            </li>
+            <li>                            
+              <Link to='/lab2'>Лабораторная 2</Link>                   
+            </li>
+            <li>                            
+              <Link to='/lab3'>Лабораторная 3</Link>                   
+            </li>
+            <li>                            
+              <Link to='/lab4'>Лабораторная 4</Link>                   
+            </li>
+            <li>                            
+              <Link to='/lab5'>Лабораторная 5</Link>                   
+            </li>
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+          </ul>
+        </nav>
       </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
-    </div>
+        
+      </BrowserRouter>
   );
 }
 
-export default App;
+
