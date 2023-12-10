@@ -21,13 +21,43 @@
   padding-left: 10px;
 }
 
+.properties{
+  position: absolute;
+  overflow: auto;
+}
 
+.outcomes{
+  position: absolute;
+  overflow: auto;
+  background: #acacac;
+  top: 0px; 
+  left: 300px;  
+  bottom: 0;
+  right: 0;
+}
 
 ul{
   list-style-type: none;
   padding-left: 0px;
   text-align: left;
   text-decoration-color: black;
+}
+
+.increase, .decrease, .increase1, .decrease1{
+  margin-left: 10px;
+}
+
+.inp, .inp1{
+  width: 100px
+  
+}
+
+textarea{
+  resize: none;
+  position: relative;
+  width: 50px;
+  height: 20px;
+  margin-bottom: -12px;
 }
 
 li{

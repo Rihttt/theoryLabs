@@ -11,6 +11,9 @@
   },
   "tauri": {
     "allowlist": {
+      "protocol":{
+        "asset": true
+      },
       "all": false,
       "shell": {
         "all": false,

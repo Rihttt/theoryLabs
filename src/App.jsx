@@ -1,6 +1,3 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
 import {BrowserRouter, Routes, Route, Link} from 'react-router-dom';
 import Lab1 from './views/lab1';
 import Lab2 from './views/lab2';
