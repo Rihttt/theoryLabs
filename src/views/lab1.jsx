@@ -1,10 +1,27 @@
-import { useState, useRef, useEffect} from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { useState } from "react";
+//import { invoke } from "@tauri-apps/api/tauri";
 import React from "react";
 import function1 from "E:/Programming/theoryLabs/src/assets/function1.png"
-import afterDraw from 'chart.js/auto';
-import { Line } from 'react-chartjs-2';
 
+import { Line } from 'react-chartjs-2';
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Filler
+)
 
 
 
@@ -15,105 +32,175 @@ export default function Lab1(){
     let [quantStepValue,setQuantStepValue] = useState(0.5);
     let [isButtonDisabled, setButtonDisabled] = useState(false);
     let [isButton1Disabled, setButton1Disabled] = useState(false);
+    let [selectedQuantizationType, setSelectedQuantizationType] = useState('first');
+    let [fillSeg,setFillSeg] = useState([]);
+    let [interSegs,setInterSegs] = useState([]);
     
     
-    class FunctionPlotter extends React.Component {
+    
+    
+    class FunctionPlotter extends React.Component{
       constructor(props) {
         super(props);
         this.state = {
           chartData: this.getChartData(),
-          
+          intersections: [],
+          hasMounted: false,
         };
       }
       
-      findIntersections() {
-        const chartData = this.state.chartData;
-        const functionData = chartData.datasets[0].data;
-        const quantLevelsData = chartData.datasets.slice(1);
+      findIntersections = () => {
+        const { chartData } = this.state;
+        const { datasets } = chartData;
       
-        const intersections = [];
-        
+        const functionDataset = datasets.find(dataset => dataset.label === 'y = 3sin((π(x-2.85))/2)/(0.8(x-2.85)))+1.3');
+        const quantizationLevels = datasets.filter(dataset => dataset.label === 'quantlvl');
+        const xValues = chartData.labels; // Предполагается, что у вас есть массив xValues с соответствующими x значениями
       
-        functionData.forEach((y, index) => {
-          quantLevelsData.forEach((levelData, levelIndex) => {
-            if (Math.abs(y - levelData.data[index]) < 0.1) {
-              intersections.push({ x: chartData.labels[index], y, levelIndex });  
-              
+        const deltaX = 0.03; // Задайте здесь нужное значение deltaX
+      
+        const intersectionsMap = new Map();
+      
+        // Iterate through function points
+        functionDataset.data.forEach((functionPoint, index) => {
+          const xValue = xValues[index];
+          quantizationLevels.forEach(quantLevel => {
+            const tolerance = 0.002;
+            const intersection = quantLevel.data.find(levelPoint => Math.abs(functionPoint - levelPoint.y) <= tolerance);
+      
+            if (intersection) {
+              const existingIntersection = intersectionsMap.get(xValue);
+      
+              if (!existingIntersection || functionPoint < existingIntersection.y) {
+                intersectionsMap.set(xValue, { x: parseFloat(xValue), y: parseFloat(functionPoint) });
+              }
             }
           });
         });
+      
+        // Filter out intersections with similar x and y values
+        const uniqueIntersections = Array.from(intersectionsMap.values()).filter((current, index, array) => {
+          const next = array[index + 1];
+          const tolerance = 0.004;
+          if (next && Math.abs(current.x - next.x) < deltaX && Math.abs(current.y - next.y) < tolerance) {
+            return false;
+          }
+          return true;
+        });
         
-        console.log('Intersections:', intersections);
+        this.setState({ intersections: uniqueIntersections });
+        //console.log('INTERSECTIONS:', uniqueIntersections);
+
+        this.setState((prevState) => {
+          const updatedIntersections = uniqueIntersections;
+          return { intersections: updatedIntersections, chartData: this.getChartData(updatedIntersections) };
+        });
       };
 
-      drawSegments(ctx, intersections) {
-        // Перебираем пары точек и рисуем отрезки
-        intersections.forEach((point, index) => {
-          if (index < intersections.length - 1) {
-            const nextPoint = intersections[index + 1];
+      componentDidMount() {
+        // Call findIntersections only after the initial render
+        const intersections = this.findIntersections();
+        const chartData = this.getChartData(intersections);
+        this.setState({ chartData, hasMounted: true });
+      }
+
+      componentDidUpdate(prevProps, prevState) {
+        if (prevState.interSegs !== this.state.interSegs) {
+          const intersections = this.findIntersections();
+          const updatedChartData = this.getChartData(intersections, this.state.interSegs);
     
-            // Рисуем отрезок между точками
-            ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(nextPoint.x, nextPoint.y);
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; // Цвет заливки
-            ctx.fill();
-            ctx.closePath();
-          }
-        });
+          this.setState({
+            chartData: updatedChartData,
+          });
+        }
       }
     
-      getChartData() 
-      {
+      getChartData = (intersections) => {
+              
+        // Здесь вы можете вычислить значения функции для различных x      
+        const x = [];
+        const y = [];
         
-        // Здесь вы можете вычислить значения функции для различных x
-        const data = [];
-        for (let x = 0; x <= 300; x += 0.1) {
-          const y = 3 * Math.sin(Math.PI * (x - 2.85) / 2.0) / (0.8 * (x - 2.85)) + 1.3;
-          data.push({ x: parseFloat(x.toFixed(2)), y: parseFloat(y.toFixed(2)) });
-
-        };
-
+       
+        let intersecTemp = intersections || [];
         
 
+        for(let i = 0;i<intersecTemp.length;i++){
+          interSegs.push(intersecTemp[i]);
+        }
+        interSegs=interSegs.slice(0,intersecTemp.length);
+        
+        
+        //console.log('IN GETCHART',intersecTemp)
+        
+        // Вычисляем значения функции и заполняем массивы x и y
+        for (let xVal = 0; xVal < 10; xVal += 0.001) {
+          x.push(parseFloat(xVal.toFixed(3)));
+          const yVal = 3 * Math.sin(Math.PI * (xVal - 2.85) / 2.0) / (0.8 * (xVal - 2.85)) + 1.3;
+          y.push(parseFloat(yVal.toFixed(3)));
+        }
+        //console.log(y);
+        
         // Используем quantStepValue для определения расстояния между уровнями
         const quantLevelsData = [];
         for (let i = 1; i < quantLevelValue+1; i++) {
-          quantLevelsData.push(Array(100).fill(0 + i * parseFloat(quantStepValue)));
+          quantLevelsData.push(parseFloat((i*quantStepValue).toFixed(1)));
         };
-    
+        
+        //console.log(selectedQuantizationType);
+        
+
+
+        const levels = quantLevelsData.map((point)=>({
+          label: 'quantlvl',
+          data: [
+            { x: 0, y: parseFloat(point.toFixed(3))},
+            { x: 100, y: parseFloat(point.toFixed(3)) },           
+          ],
+          fill: false,
+          
+          borderColor: 'rgb(255,0,0)',
+          pointRadius: 0,
+          pointHitRadius: 2,
+          borderWidth: 1,
+          yAxisID: 'y2',
+          showLine: true,
+        }));
+        
+
+       
+
         return {
-          labels: data.map(point => point.x.toFixed(15)),
+          labels: x.map(val => val.toFixed(3)),
           datasets: [
             
             {
               label: 'y = 3sin((π(x-2.85))/2)/(0.8(x-2.85)))+1.3',
-              data: data.map(point => point.y.toFixed(15)),
-              fill: false,
+              data: y.map(val=>val.toFixed(3)),
+              fill: false,             
               borderColor: 'rgb(0,0,255)',
-              borderWidth: 2,
+              borderWidth: 1,
               pointRadius: 0,
               pointHitRadius: 2,
-              yAxisID: 'y1'
+              yAxisID: 'y1',
+              display: false,
+              showLine:true,
             },           
-
-            ...quantLevelsData.map((levelData, index) => ({
-              label: ``,
-              data: levelData,
-              fill: false,
-              borderColor: 'rgb(255,0,0)',
-              borderWidth: 2,
-              pointRadius: 0,
-              pointHitRadius: 2,
-              yAxisID: 'y2',
-            })),
-
+            
+            ...levels,
+            ...fillSeg,
           ],
         };
       };
       
       render() {
-        this.findIntersections();
+        const { hasMounted } = this.state;
+        
+        // Conditional rendering based on component mount status
+        if (!hasMounted) {
+          // Render loading or initial state
+          return <div>Loading...</div>;
+        }
         
         return (
           <div style={{width:'70%',height:'600px'}}>
@@ -122,6 +209,7 @@ export default function Lab1(){
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
+                
                 scales: {
                   x: {
                     type: 'linear',
@@ -155,33 +243,184 @@ export default function Lab1(){
                       
                     },
                     display: false,
-                    beginAtZero: true,
+                    
                     max:8,
                   },
-                  
+                  y3: {
+                    id: 'y3',
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                      stepSize: 1, // Шаг между значениями
+                      maxTicksLimit: 100, // Максимальное количество значений на шкале
+                      
+                    },
+                    display: false,
+                    
+                    
+                  },
+                                    
                 },
                 
-              }}
-              plugins={[
-                {
-                  afterDraw: () => {
-                    this.findIntersections();
-                  },
-                },
-              ]}
+              }}  
+             
             />
           </div>
         );
-      }
+      };
     };
      
 
-    const imagePath = 'E:/Programming/theoryLabs/src/assets/function.png';
-    console.log(imagePath);
+    const handleStartQuantiztion = (event)=> {
+
+      let fillSegNew = [];
+      
+      const fillBetweenData = [];
+      let intersecTemp = interSegs;
+      
+      const intersectionsCount = intersecTemp.length;
+
+      for (let i = 0; i < intersectionsCount - 1; i++) {
+        const currentIntersection = intersecTemp[i];
+        const { x: currentX, y: currentY } = currentIntersection;        
+        fillBetweenData.push({ x: currentX, y: currentY });          
+      }
+      
+      for (let i = 0; i < fillBetweenData.length - 1; i++) {
+        const point = fillBetweenData[i];
+        const nextPoint = fillBetweenData[i + 1];
+        if(selectedQuantizationType === 'first'){
+          if(nextPoint.y<point.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+
+          }
+          if(point.y<nextPoint.y || point.y === nextPoint.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+          }
+        }
+
+        if(selectedQuantizationType === 'second'){
+          if(nextPoint.y<point.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+
+          }
+          if(point.y<nextPoint.y || point.y === nextPoint.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+          }
+        }
+
+        if(selectedQuantizationType === 'third'){
+          if(nextPoint.y<point.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: (parseFloat(point.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(point.y.toFixed(3))+((parseFloat(nextPoint.y.toFixed(3))-parseFloat(point.y.toFixed(3)))/2)) },
+                { x: (parseFloat(nextPoint.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(point.y.toFixed(3))+((parseFloat(nextPoint.y.toFixed(3))-parseFloat(point.y.toFixed(3)))/2)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+
+          }
+          if(point.y<nextPoint.y || point.y === nextPoint.y){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: (parseFloat(nextPoint.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(nextPoint.y.toFixed(3))+((parseFloat(point.y.toFixed(3))-parseFloat(nextPoint.y.toFixed(3)))/2)) },
+                { x: (parseFloat(point.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(nextPoint.y.toFixed(3))+((parseFloat(point.y.toFixed(3))-parseFloat(nextPoint.y.toFixed(3)))/2)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+          }
+        }
+      }
+      
+      setFillSeg(fillSegNew);
+      
+    };
+
+    const handleDeleteQuantization = () =>{
+      setFillSeg([]);
+    }
+    
+
+    const handleQuantizationTypeChange = (event) => {
+      setSelectedQuantizationType(event.target.value);
+    };
+
     //обработчики кнопок уровня квантования
     const handleIncreaseClick = () => {
         let pom = parseInt(quantLevelValue) + 1;
-        console.log(pom)
+        
         setQuantLevelValue(pom);
         if (quantLevelValue > 7) {
             setButtonDisabled(false);
@@ -200,7 +439,7 @@ export default function Lab1(){
     //Обработчики кнопок шага квантования
     const handleIncrease1Click = () => {
         let pom = parseFloat(quantStepValue) + 0.1;
-        console.log(pom)
+        
         setQuantStepValue(pom.toFixed(1));
         if (quantStepValue > 0.4) {
             setButton1Disabled(false);
@@ -225,10 +464,10 @@ export default function Lab1(){
                     <div className="properties">
 
                         <p>Тип квантования</p>
-                        <select>                           
-                            <option id="1">Ближайшее значение снизу</option>
-                            <option id="2">Ближайшее значение сверху</option>
-                            <option id="3">Ближайшее значение </option>
+                        <select value={selectedQuantizationType} onChange={handleQuantizationTypeChange}>                           
+                            <option value="first">Ближайшее значение снизу</option>
+                            <option value="second">Ближайшее значение сверху</option>
+                            <option value="third">Ближайшее значение </option>
                         </select>
 
                         <div>
@@ -252,8 +491,13 @@ export default function Lab1(){
                             <p>Функция</p>
                             <img src={function1} alt="логотип" height={100} width={200} />
                         </div> 
+                        <div>
+                          <button onClick={handleStartQuantiztion}>Начать квантование</button>  
+                        </div>     
 
-                        <button>Начать квантование</button>       
+                        <div>
+                          <button onClick={handleDeleteQuantization}>Удалить квантование</button>  
+                        </div>  
                     </div>
 
                     <div className="outcomes">

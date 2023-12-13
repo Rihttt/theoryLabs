@@ -9,7 +9,17 @@ export default function Lab3(){
             
             <div className="content">
                 <h2>lab3</h2>
+                    <div className="properties">
+                        
+                    </div>
+
+                    <div className="outcomesl5">
+                        
+                    </div>
+                
             </div>
+            
+            
         </>
     )
 }

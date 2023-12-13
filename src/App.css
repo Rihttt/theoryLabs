@@ -26,6 +26,7 @@
   overflow: auto;
 }
 
+
 .outcomes{
   position: absolute;
   overflow: auto;
@@ -36,6 +37,26 @@
   right: 0;
 }
 
+.outcomesl5{
+  position: absolute;
+  overflow: auto;
+  background: #acacac;
+  top: 0px; 
+  left: 450px;  
+  bottom: 0;
+  right: 0;
+}
+
+.signalSize{
+  margin-left: 45px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.laber{
+  width:50px;
+  height:10px;
+}
 ul{
   list-style-type: none;
   padding-left: 0px;
