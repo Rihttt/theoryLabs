@@ -46,31 +46,15 @@ export default function Lab5(){
     const encodeHamming = (binaryBlock, sizeSignalInt) => {
       // Ensure the binary block length is equal to sizeSignalInt
         binaryBlock = binaryBlock.padEnd(sizeSignalInt, '0');
-        //console.log('binary block in encode', binaryBlock)
 
         // Create an array to represent the encoded block
         let encodedBlock = Array.from(binaryBlock);
 
-        if (sizeSignal === 4){
-            encodedBlock[0] = calculateParityBit(binaryBlock, [1, 3, 5, 7]);
-            encodedBlock[1] = calculateParityBit(binaryBlock, [2, 3, 6, 7]);
-            encodedBlock[3] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-        }
-        if (sizeSignal === 8){
-            encodedBlock[0] = calculateParityBit(binaryBlock, [1, 3, 5, 7]);
-            encodedBlock[1] = calculateParityBit(binaryBlock, [2, 3, 6, 7]);
-            encodedBlock[3] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-            encodedBlock[7] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-        }
-        if (sizeSignal === 16){
-            encodedBlock[0] = calculateParityBit(binaryBlock, [1, 3, 5, 7]);
-            encodedBlock[1] = calculateParityBit(binaryBlock, [2, 3, 6, 7]);
-            encodedBlock[3] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-            encodedBlock[7] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-            encodedBlock[15] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
-        }
+        // Calculate parity bits P1, P2, and P4
+        encodedBlock[0] = calculateParityBit(binaryBlock, [1, 3, 5, 7]);
+        encodedBlock[1] = calculateParityBit(binaryBlock, [2, 3, 6, 7]);
+        encodedBlock[3] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
 
-        console.log('binary block in encode', binaryBlock)
         return encodedBlock.join('');
     };
   
@@ -142,10 +126,10 @@ export default function Lab5(){
       const binaryInputMessage = textToBinary(inputMessage);
       const sizeSignalInt = parseInt(sizeSignal, 10);
       const binaryBlocks = splitBinaryString(binaryInputMessage, sizeSignalInt);
-        console.log('signalSizeInp',sizeSignal)
-      console.log('binaryInp',binaryInputMessage)
-      console.log('signalSize',sizeSignalInt)
-      console.log('binaryBlocks',binaryBlocks)
+
+      console.log(binaryInputMessage)
+      console.log(sizeSignalInt)
+      console.log(binaryBlocks)
   
       const encodedBlocks = binaryBlocks.map((block) =>
         encodeHamming(block, sizeSignalInt)
@@ -187,7 +171,7 @@ export default function Lab5(){
 
                         <div style={{paddingTop:10}}>
                             <label>Размер сигнала:</label>
-                            <select className='signalSize'value={sizeSignal} onChange={(e) => setSizeSignal(e.target.value)}>                           
+                            <select className='signalSize'value={sizeSignal}>                           
                                 <option value="4">4</option>
                                 <option value="8">8</option>
                                 <option value="16">16</option>
