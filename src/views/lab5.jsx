@@ -20,7 +20,7 @@ export default function Lab5(){
     const binaryToString = (binary) => {
         console.log('Value of binary',binary);
         if (binary === null || binary === undefined) {
-            // Обработка случая, когда binary равно null или undefined
+            
             return '';
           }
           
@@ -44,13 +44,13 @@ export default function Lab5(){
     };
   
     const encodeHamming = (binaryBlock, sizeSignalInt) => {
-      // Ensure the binary block length is equal to sizeSignalInt
+      
         binaryBlock = binaryBlock.padEnd(sizeSignalInt, '0');
 
-        // Create an array to represent the encoded block
+       
         let encodedBlock = Array.from(binaryBlock);
 
-        // Calculate parity bits P1, P2, and P4
+       
         encodedBlock[0] = calculateParityBit(binaryBlock, [1, 3, 5, 7]);
         encodedBlock[1] = calculateParityBit(binaryBlock, [2, 3, 6, 7]);
         encodedBlock[3] = calculateParityBit(binaryBlock, [4, 5, 6, 7]);
@@ -59,7 +59,7 @@ export default function Lab5(){
     };
   
     const calculateParityBit = (block, positions) => {
-        // Calculate the parity bit for the specified positions
+        
         const parityBit = positions.reduce((parity, position) => {
           return parity ^ parseInt(block[position]);
         }, 0);
@@ -70,7 +70,7 @@ export default function Lab5(){
     const simulateErrors = (binaryBlocks, sizeSignalInt, probabilityError) => {
         const modifiedBinaryBlocks = binaryBlocks.map((block) => {
           const modifiedBlock = block.split('').map((bit, index) => {
-            // Skip parity bits during error simulation
+            
             if (index !== 0 && index !== 1 && index !== 3) {
               const randomProbability = Math.random();
               return randomProbability < probabilityError ? flipBit(bit) : bit;
@@ -85,33 +85,33 @@ export default function Lab5(){
       };
       
       const flipBit = (bit) => {
-        // Flip the bit (change 0 to 1 or 1 to 0)
+        
         return bit === '0' ? '1' : '0';
     };
   
     const decodeHamming = (modifiedBinaryBlocks, sizeSignalInt) => {
         const decodedBinaryBlocks = modifiedBinaryBlocks.map((modifiedBlock) => {
-          // Ensure the binary block length is equal to sizeSignalInt
+          
           modifiedBlock = modifiedBlock.padEnd(sizeSignalInt, '0');
       
-          // Create an array to represent the decoded block
+          
           let decodedBlock = Array.from(modifiedBlock);
       
-          // Calculate syndrome bits
+          
           const syndromeP1 = calculateParityBit(modifiedBlock, [1, 3, 5, 7]);
           const syndromeP2 = calculateParityBit(modifiedBlock, [2, 3, 6, 7]);
           const syndromeP4 = calculateParityBit(modifiedBlock, [4, 5, 6, 7]);
       
-          // Detect and correct errors
+          
           const errorPosition =
             parseInt(syndromeP1, 2) * 1 + parseInt(syndromeP2, 2) * 2 + parseInt(syndromeP4, 2) * 4;
       
           if (errorPosition !== 0) {
-            // Flip the bit at the detected error position
+            
             decodedBlock[errorPosition - 1] = flipBit(decodedBlock[errorPosition - 1]);
           }
       
-          // Remove parity bits
+          
           decodedBlock = decodedBlock.filter(
             (_, index) => index !== 0 && index !== 1 && index !== 3
           );
@@ -122,36 +122,32 @@ export default function Lab5(){
         return decodedBinaryBlocks;
       };
   
-    const onSendMessageClick = () => {
-      const binaryInputMessage = textToBinary(inputMessage);
-      const sizeSignalInt = parseInt(sizeSignal, 10);
-      const binaryBlocks = splitBinaryString(binaryInputMessage, sizeSignalInt);
-
-      console.log(binaryInputMessage)
-      console.log(sizeSignalInt)
-      console.log(binaryBlocks)
-  
-      const encodedBlocks = binaryBlocks.map((block) =>
-        encodeHamming(block, sizeSignalInt)
-      );
-  
-      const modifiedBinaryBlocks = simulateErrors(
-        encodedBlocks,
-        sizeSignalInt,
-        parseFloat(probabilityError)
-      );
-  
-      const decodedBinaryBlocks = decodeHamming(
-        modifiedBinaryBlocks,
-        sizeSignalInt
-      );
-        console.log(decodedBinaryBlocks)
-      setResultBlocks(decodedBinaryBlocks);
-  
-      const outputBinaryMessage = decodedBinaryBlocks.join('');
-      const outputTextMessage = binaryToString(outputBinaryMessage);
-      setOutputMessage(outputTextMessage);
-    };
+      const onSendMessageClick = () => {
+        const binaryInputMessage = textToBinary(inputMessage);
+        const sizeSignalInt = parseInt(sizeSignal, 10);
+        const binaryBlocks = splitBinaryString(binaryInputMessage, sizeSignalInt);
+    
+        const encodedBlocks = binaryBlocks.map((block) =>
+          encodeHamming(block, sizeSignalInt)
+        );
+    
+        const modifiedBinaryBlocks = simulateErrors(
+          encodedBlocks,
+          sizeSignalInt,
+          parseFloat(probabilityError)
+        );
+    
+        const decodedBinaryBlocks = decodeHamming(
+          modifiedBinaryBlocks,
+          sizeSignalInt
+        );
+    
+        setResultBlocks(decodedBinaryBlocks);
+    
+        const outputBinaryMessage = decodedBinaryBlocks.join('');
+        const outputTextMessage = binaryToString(outputBinaryMessage);
+        setOutputMessage(outputTextMessage);
+      };
 
   return (
     <>
@@ -171,7 +167,7 @@ export default function Lab5(){
 
                         <div style={{paddingTop:10}}>
                             <label>Размер сигнала:</label>
-                            <select className='signalSize'value={sizeSignal}>                           
+                            <select className='signalSize'value={sizeSignal} onChange={(e) => setSizeSignal(e.target.value)}>                           
                                 <option value="4">4</option>
                                 <option value="8">8</option>
                                 <option value="16">16</option>
