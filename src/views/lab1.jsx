@@ -55,17 +55,15 @@ export default function Lab1(){
       
         const functionDataset = datasets.find(dataset => dataset.label === 'y = 3sin((π(x-2.85))/2)/(0.8(x-2.85)))+1.3');
         const quantizationLevels = datasets.filter(dataset => dataset.label === 'quantlvl');
-        const xValues = chartData.labels; // Предполагается, что у вас есть массив xValues с соответствующими x значениями
-      
-        const deltaX = 0.03; // Задайте здесь нужное значение deltaX
-      
+        const xValues = chartData.labels; 
+        const deltaX = 0.03; // Ещё одна погрешность, без неё появляется по две точки с разницей 0.001 в x и y
         const intersectionsMap = new Map();
       
-        // Iterate through function points
+        
         functionDataset.data.forEach((functionPoint, index) => {
           const xValue = xValues[index];
           quantizationLevels.forEach(quantLevel => {
-            const tolerance = 0.002;
+            const tolerance = 0.002; //погрешность, так как линию может пересекать несколько точек графика
             const intersection = quantLevel.data.find(levelPoint => Math.abs(functionPoint - levelPoint.y) <= tolerance);
       
             if (intersection) {
@@ -78,7 +76,7 @@ export default function Lab1(){
           });
         });
       
-        // Filter out intersections with similar x and y values
+        // фильтрация точек с близкими xy
         const uniqueIntersections = Array.from(intersectionsMap.values()).filter((current, index, array) => {
           const next = array[index + 1];
           const tolerance = 0.004;
@@ -98,7 +96,7 @@ export default function Lab1(){
       };
 
       componentDidMount() {
-        // Call findIntersections only after the initial render
+        // Вызов finIntersections ПОСЛЕ первого рендера, чтобы небыло зацикливания
         const intersections = this.findIntersections();
         const chartData = this.getChartData(intersections);
         this.setState({ chartData, hasMounted: true });
@@ -117,7 +115,7 @@ export default function Lab1(){
     
       getChartData = (intersections) => {
               
-        // Здесь вы можете вычислить значения функции для различных x      
+        // Значения функции      
         const x = [];
         const y = [];
         
@@ -133,15 +131,15 @@ export default function Lab1(){
         
         //console.log('IN GETCHART',intersecTemp)
         
-        // Вычисляем значения функции и заполняем массивы x и y
+        // значения функции и заполнение массивов x и y
         for (let xVal = 0; xVal < 10; xVal += 0.001) {
           x.push(parseFloat(xVal.toFixed(3)));
-          const yVal = 3 * Math.sin(Math.PI * (xVal - 2.85) / 2.0) / (0.8 * (xVal - 2.85)) + 1.3;
+          const yVal = 3 * Math.sin(Math.PI * (xVal - 0.1 ) / 2) / (0.8 * (xVal - 0.1)) + 1.31;
           y.push(parseFloat(yVal.toFixed(3)));
         }
         //console.log(y);
         
-        // Используем quantStepValue для определения расстояния между уровнями
+        //  quantStepValue для определения расстояния между уровнями
         const quantLevelsData = [];
         for (let i = 1; i < quantLevelValue+1; i++) {
           quantLevelsData.push(parseFloat((i*quantStepValue).toFixed(1)));
@@ -215,8 +213,8 @@ export default function Lab1(){
                     type: 'linear',
                     position: 'bottom',
                     ticks: {
-                      stepSize: 0.1, // Шаг между значениями
-                      maxTicksLimit: 300, // Максимальное количество значений на шкале
+                      stepSize: 0.1, 
+                      maxTicksLimit: 300, 
                       
                     },
                     display: false, 
@@ -227,8 +225,8 @@ export default function Lab1(){
                     type: 'linear',
                     position: 'left',
                     ticks: {
-                      stepSize: 10, // Шаг между значениями
-                      maxTicksLimit: 100, // Максимальное количество значений на шкале
+                      stepSize: 10, 
+                      maxTicksLimit: 100, 
                       
                     },     
                     display: false,               
@@ -238,8 +236,8 @@ export default function Lab1(){
                     type: 'linear',
                     position: 'left',
                     ticks: {
-                      stepSize: 1, // Шаг между значениями
-                      maxTicksLimit: 100, // Максимальное количество значений на шкале
+                      stepSize: 1, 
+                      maxTicksLimit: 100, 
                       
                     },
                     display: false,
@@ -251,8 +249,8 @@ export default function Lab1(){
                     type: 'linear',
                     position: 'left',
                     ticks: {
-                      stepSize: 1, // Шаг между значениями
-                      maxTicksLimit: 100, // Максимальное количество значений на шкале
+                      stepSize: 1, 
+                      maxTicksLimit: 100, 
                       
                     },
                     display: false,
@@ -261,6 +259,7 @@ export default function Lab1(){
                   },
                                     
                 },
+                
                 
               }}  
              
@@ -278,9 +277,24 @@ export default function Lab1(){
       const fillBetweenData = [];
       let intersecTemp = interSegs;
       
+      const interpolateX = (yValue,prevPoint,currentPoint) =>{
+          //console.log('prev',prevPoint)
+          //console.log('current',currentPoint)
+          //console.log('yValue',yValue)
+          if(yValue < parseFloat(prevPoint.y) && yValue > parseFloat(currentPoint.y)){
+            const slope = (parseFloat(currentPoint.x) - parseFloat(prevPoint.x))/(parseFloat(currentPoint.y)-parseFloat(prevPoint.y));
+            console.log('slope',slope);
+            const xValue = parseFloat(prevPoint.x) + slope * (parseFloat(yValue) - parseFloat(prevPoint.y));
+            console.log('interpolatedX',xValue);
+            return xValue
+          }
+        
+        
+      };
+      
       const intersectionsCount = intersecTemp.length;
 
-      for (let i = 0; i < intersectionsCount - 1; i++) {
+      for (let i = 0; i < intersectionsCount ; i++) {
         const currentIntersection = intersecTemp[i];
         const { x: currentX, y: currentY } = currentIntersection;        
         fillBetweenData.push({ x: currentX, y: currentY });          
@@ -308,7 +322,7 @@ export default function Lab1(){
             });
 
           }
-          if(point.y<nextPoint.y || point.y === nextPoint.y){
+          if(point.y<nextPoint.y ){
             fillSegNew.push({
               label: ``,
               data: [
@@ -324,7 +338,49 @@ export default function Lab1(){
               yAxisID: 'y2',
               showLine: true,
             });
+
           }
+          let fillPlu = parseInt(point.y);
+          let lvl = 0;
+          
+          switch(quantStepValue){
+            case '0.4':  fillPlu = parseInt(point.y+4);
+                        break;
+            case '0.5':  fillPlu = parseInt(point.y+1);lvl=1.5;
+                        break;
+            case '0.6':  fillPlu = parseInt(point.y);lvl = 1.8;
+                        break;  
+            case '0.7':  fillPlu = parseInt(point.y);lvl=1.4;
+                        break;
+            case '0.8':  fillPlu = parseInt(point.y);lvl=1.6;
+                        break; 
+            case '0.9':  fillPlu = parseInt(point.y);lvl=1.5;
+                        break;                           
+          }
+            
+          
+          
+          if(parseFloat(point.y.toFixed(1)) === parseFloat(nextPoint.y.toFixed(1)) && (point.y<lvl)){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(1))},
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(point.y.toFixed(1)) },
+                
+              ],
+              
+              fill: fillPlu ,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+
+            
+          }
+                             
         }
 
         if(selectedQuantizationType === 'second'){
@@ -346,7 +402,7 @@ export default function Lab1(){
             });
 
           }
-          if(point.y<nextPoint.y || point.y === nextPoint.y){
+          if(point.y<nextPoint.y){
             fillSegNew.push({
               label: ``,
               data: [
@@ -363,6 +419,46 @@ export default function Lab1(){
               showLine: true,
             });
           }
+          let fillPlu = parseInt(point.y+1);
+          let lvl = 0;
+          
+          switch(quantStepValue){
+            case '0.4':  fillPlu = parseInt(point.y+4);lvl=1.6;
+                        break;
+            case '0.5':  fillPlu = parseInt(point.y+3);lvl=1.5;
+                        break;
+            case '0.6':  fillPlu = parseInt(point.y+3);lvl = 1.8;
+                        break;  
+            case '0.7':  fillPlu = parseInt(point.y+2);lvl=1.4;
+                        break;
+            case '0.8':  fillPlu = parseInt(point.y+2);lvl=1.6;
+                        break; 
+            case '0.9':  fillPlu = parseInt(point.y+2);lvl=1.5;
+                        break;                           
+          }
+            
+          
+          
+          if(parseFloat(point.y.toFixed(1)) === parseFloat(nextPoint.y.toFixed(1)) && (point.y>lvl)){
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(1))},
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(point.y.toFixed(1)) },
+                
+              ],
+              
+              fill: fillPlu ,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+
+            
+          }                   
         }
 
         if(selectedQuantizationType === 'third'){
@@ -370,8 +466,8 @@ export default function Lab1(){
             fillSegNew.push({
               label: ``,
               data: [
-                { x: (parseFloat(point.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(point.y.toFixed(3))+((parseFloat(nextPoint.y.toFixed(3))-parseFloat(point.y.toFixed(3)))/2)) },
-                { x: (parseFloat(nextPoint.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(point.y.toFixed(3))+((parseFloat(nextPoint.y.toFixed(3))-parseFloat(point.y.toFixed(3)))/2)) },
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                { x: interpolateX(((parseFloat(nextPoint.y.toFixed(3)) + parseFloat(point.y.toFixed(3)))/2),point,nextPoint), y: parseFloat(point.y.toFixed(3)) },
                 
               ],
               fill: 0,
@@ -383,13 +479,29 @@ export default function Lab1(){
               showLine: true,
             });
 
+            fillSegNew.push({
+              label: ``,
+              data: [ 
+                //interpolateX((parseFloat(nextPoint.y.toFixed(3)) + parseFloat(point.y.toFixed(3)))/2)         ((parseFloat(point.x.toFixed(3))+parseFloat(nextPoint.x.toFixed(3)))/2)
+                { x: interpolateX(((parseFloat(nextPoint.y.toFixed(3)) + parseFloat(point.y.toFixed(3)))/2),point,nextPoint), y: parseFloat(nextPoint.y.toFixed(3)) },  
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });          
           }
           if(point.y<nextPoint.y || point.y === nextPoint.y){
             fillSegNew.push({
               label: ``,
               data: [
-                { x: (parseFloat(nextPoint.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(nextPoint.y.toFixed(3))+((parseFloat(point.y.toFixed(3))-parseFloat(nextPoint.y.toFixed(3)))/2)) },
-                { x: (parseFloat(point.x.toFixed(3))+((parseFloat(nextPoint.x.toFixed(3))-parseFloat(point.x.toFixed(3)))/2)), y: (parseFloat(nextPoint.y.toFixed(3))+((parseFloat(point.y.toFixed(3))-parseFloat(nextPoint.y.toFixed(3)))/2)) },
+                { x: parseFloat(point.x.toFixed(3)), y: parseFloat(point.y.toFixed(3)) },
+                { x: interpolateX(((parseFloat(nextPoint.y.toFixed(3)) + parseFloat(point.y.toFixed(3)))/2),nextPoint,point), y: parseFloat(point.y.toFixed(3)) },
                 
               ],
               fill: 0,
@@ -400,6 +512,23 @@ export default function Lab1(){
               yAxisID: 'y2',
               showLine: true,
             });
+
+            fillSegNew.push({
+              label: ``,
+              data: [
+                { x:  interpolateX(((parseFloat(nextPoint.y.toFixed(3)) + parseFloat(point.y.toFixed(3)))/2),nextPoint,point), y: parseFloat(nextPoint.y.toFixed(3)) },
+                { x: parseFloat(nextPoint.x.toFixed(3)), y: parseFloat(nextPoint.y.toFixed(3)) },
+                
+              ],
+              fill: 0,
+              backgroundColor: 'rgb(0,255,0)',
+              borderColor: 'rgb(0,0,0)',
+              borderWidth: 1,
+              pointRadius: 0,
+              yAxisID: 'y2',
+              showLine: true,
+            });
+            
           }
         }
       }

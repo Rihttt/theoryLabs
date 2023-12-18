@@ -11,6 +11,7 @@ export default function Lab3(){
     const [result, setResult] = useState('');
     const [intermediateArrays, setIntermediateArrays] = useState([]);
     const [binaryWay,setBinaryWay] = useState('');
+    const [Hart,setHart]=useState(0);
 
     const search = (array,target) => {
         const left = 0;
@@ -64,6 +65,7 @@ export default function Lab3(){
         setBinaryWay('');
         setIntermediateArrays([]);
         search(array,target);
+        setHart(Math.log2(array.length))
     };
 
     const handleAddElementClick = () => {
@@ -143,6 +145,12 @@ export default function Lab3(){
                             </div>
                             <div>
                                 (1-шаг вправо, 0-шаг влево)
+                            </div>
+                            <div>
+                                Количество информации по формуле Хартли: {Hart}
+                            </div>
+                            <div>
+                            Т.к биты - дискретная величина, округляем до ближайшего большего числа: {Math.ceil(Hart)}
                             </div>
                         </div>
                     </div>

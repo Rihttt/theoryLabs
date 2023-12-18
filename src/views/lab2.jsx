@@ -97,13 +97,13 @@ export default function Lab2(){
     }   
 
     const sumValuesAtX = (xValue) => {
-        // Пройдем по каждому графику и получим значение y в заданной точке x
+        // Проходимся по каждому графику и получаем значение y в заданной точке x
         const yValues = functions.map((func) => {
           const xIndex = x.findIndex((val) => parseFloat(val.toFixed(3)) === parseFloat(xValue.toFixed(3)));
           return xIndex !== -1 ? func.data[xIndex] : 0;
         });
       
-        // Теперь сложим полученные значения
+        // Теперь складываем полученные значения
         const sum = yValues.reduce((acc, curr) => parseFloat(acc) + parseFloat(curr), 0);
         console.log('Суммы в y',sum)
         return sum;
